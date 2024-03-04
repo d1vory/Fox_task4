@@ -7,27 +7,45 @@ public class ReversePolishNotation
 {
     public class Shunt
     {
-        private decimal? _number;
-        private string? _operator;
+        public decimal? Number { get; private set; }
+        public string? Operator { get; private set; } //TODO add validation for operations
 
         public Shunt(decimal? number=null, string? operatorStr = null)
         {
-            _number = number;
-            _operator = operatorStr;
+            Number = number;
+            Operator = operatorStr;
+        }
+
+        public bool IsNumber()
+        {
+            return Number != null;
+        }
+
+        public decimal Calculate(decimal a, decimal b)
+        {
+            switch (Operator)
+            {
+                case "+":
+                    return a + b;
+                case "-":
+                    return a - b;
+                case "*":
+                    return a * b;
+                case "/":
+                    return a / b;
+                default:
+                    throw new ApplicationException("This instance is not operator");
+            }
         }
 
         public override string ToString()
         {
-            if (_number != null)
+            if (IsNumber())
             {
-                return _number.ToString();
+                return Number.ToString();
             }
-            if (_operator != null)
-            {
-                return _operator;
-            }
-
-            return "";
+            
+            return Operator ?? string.Empty;
         }
 
     }
@@ -56,6 +74,36 @@ public class ReversePolishNotation
             Console.Write(sh + "  ");
         }
         Console.Write("\n");
+    }
+
+
+    public decimal Evaluate()
+    {
+        var calculationStack = new Stack<decimal>();
+        foreach (var sh in _output)
+        {
+            if (sh.IsNumber())
+            {
+                calculationStack.Push((decimal)sh.Number);
+            }
+            else
+            {
+                if (calculationStack.Count < 2)
+                {
+                    throw new ApplicationException("Error in the expression");
+                }
+
+                var operandB = calculationStack.Pop();
+                var operandA = calculationStack.Pop();
+
+                var result = sh.Calculate(operandA, operandB);
+                calculationStack.Push(result);
+            }
+        }
+
+        return calculationStack.Pop();
+
+
     }
 
     private void DoShuntingAlgorithm()
