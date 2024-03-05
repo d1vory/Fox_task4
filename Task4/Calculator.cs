@@ -9,7 +9,7 @@ public class Calculator
     {
         public decimal? Number { get; private set; }
         private string? _operator;
-        
+
         public string? Operator
         {
             get => _operator;
@@ -25,7 +25,7 @@ public class Calculator
             }
         }
 
-        public CalcItem(decimal? number=null, string? operatorStr = null)
+        public CalcItem(decimal? number = null, string? operatorStr = null)
         {
             Number = number;
             Operator = operatorStr;
@@ -59,24 +59,23 @@ public class Calculator
             {
                 return Number.ToString() ?? string.Empty;
             }
-            
+
             return Operator ?? string.Empty;
         }
-
     }
-    
-    
+
+
     private string Input { get; set; }
     private string[] Tokens { get; set; }
     private Queue<CalcItem> OutputPolishNotation { get; set; }
-    
-    
+
+
     public Calculator(string input)
     {
         Input = input;
-        
+
         ValidateInput();
-        DivideByTokens();   
+        DivideByTokens();
         DoShuntingAlgorithm();
     }
 
@@ -115,8 +114,6 @@ public class Calculator
         }
 
         return calculationStack.Pop();
-
-
     }
 
     private void DoShuntingAlgorithm()
@@ -132,7 +129,7 @@ public class Calculator
             bool isNumber = decimal.TryParse(token, style, culture, out var number);
             if (isNumber)
             {
-                OutputPolishNotation.Enqueue(new CalcItem(number:number));
+                OutputPolishNotation.Enqueue(new CalcItem(number: number));
             }
             else if (token is "+" or "-" or "*" or "/")
             {
@@ -143,11 +140,12 @@ public class Calculator
                 else
                 {
                     //While there's an operator on the top of the stack with greater precedence:
-                    while ((operations.Count > 0) && (operations.Peek() is "*" or "/" ))
+                    while ((operations.Count > 0) && (operations.Peek() is "*" or "/"))
                     {
                         //Pop operators from the stack onto the output queue
-                        OutputPolishNotation.Enqueue(new CalcItem(operatorStr:operations.Pop()));
+                        OutputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
                     }
+
                     operations.Push(token);
                 }
             }
@@ -159,8 +157,9 @@ public class Calculator
             {
                 while (operations.Peek() != "(")
                 {
-                    OutputPolishNotation.Enqueue(new CalcItem(operatorStr:operations.Pop()));
+                    OutputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
                 }
+
                 // Pop the left bracket from the stack and discard it
                 operations.Pop();
             }
@@ -168,10 +167,10 @@ public class Calculator
 
         while (operations.Count > 0)
         {
-            OutputPolishNotation.Enqueue(new CalcItem(operatorStr:operations.Pop()));
+            OutputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
         }
     }
-    
+
     private void DivideByTokens()
     {
         var regexp = new Regex(@"(\()|(\))|([\d\.]+)|([\+\/\*-]+)");
@@ -187,5 +186,4 @@ public class Calculator
             throw new ApplicationException("Given input is invalid!");
         }
     }
-    
 }
