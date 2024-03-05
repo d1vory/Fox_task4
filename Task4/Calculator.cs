@@ -3,14 +3,29 @@ using System.Text.RegularExpressions;
 
 namespace Task4;
 
-public class ReversePolishNotation
+public class Calculator
 {
-    public class Shunt
+    private class CalcItem
     {
         public decimal? Number { get; private set; }
-        public string? Operator { get; private set; } //TODO add validation for operations
+        private string? _operator;
+        
+        public string? Operator
+        {
+            get => _operator;
+            private set
+            {
+                var allowedValues = new[] { "+", "-", "*", "/" };
+                if (value != null && !allowedValues.Contains(value))
+                {
+                    throw new ArgumentException("Unknown operator!");
+                }
 
-        public Shunt(decimal? number=null, string? operatorStr = null)
+                _operator = value;
+            }
+        }
+
+        public CalcItem(decimal? number=null, string? operatorStr = null)
         {
             Number = number;
             Operator = operatorStr;
@@ -42,7 +57,7 @@ public class ReversePolishNotation
         {
             if (IsNumber())
             {
-                return Number.ToString();
+                return Number.ToString() ?? string.Empty;
             }
             
             return Operator ?? string.Empty;
@@ -51,27 +66,25 @@ public class ReversePolishNotation
     }
     
     
-    private string _input { get; set; }
-    
-    private string[] _tokens { get; set; }
-    private Queue<Shunt> _output { get; set; }
-    private Stack<string> _operations { get; set; }
+    private string Input { get; set; }
+    private string[] Tokens { get; set; }
+    private Queue<CalcItem> OutputPolishNotation { get; set; }
     
     
-    
-    public ReversePolishNotation(string input)
+    public Calculator(string input)
     {
-        _input = input;
+        Input = input;
         
+        ValidateInput();
         DivideByTokens();   
         DoShuntingAlgorithm();
     }
 
     public void PrintReversedPolishNotation()
     {
-        foreach (var sh in _output)
+        foreach (var item in OutputPolishNotation)
         {
-            Console.Write(sh + "  ");
+            Console.Write(item + "  ");
         }
         Console.Write("\n");
     }
@@ -80,11 +93,11 @@ public class ReversePolishNotation
     public decimal Evaluate()
     {
         var calculationStack = new Stack<decimal>();
-        foreach (var sh in _output)
+        foreach (var item in OutputPolishNotation)
         {
-            if (sh.IsNumber())
+            if (item.IsNumber())
             {
-                calculationStack.Push((decimal)sh.Number);
+                calculationStack.Push((decimal)item.Number);
             }
             else
             {
@@ -96,7 +109,7 @@ public class ReversePolishNotation
                 var operandB = calculationStack.Pop();
                 var operandA = calculationStack.Pop();
 
-                var result = sh.Calculate(operandA, operandB);
+                var result = item.Calculate(operandA, operandB);
                 calculationStack.Push(result);
             }
         }
@@ -110,77 +123,69 @@ public class ReversePolishNotation
     {
         var culture = new CultureInfo("en-US", false);
         var style = NumberStyles.Number;
-        _output = new Queue<Shunt>();
-        _operations = new Stack<string>();
+        OutputPolishNotation = new Queue<CalcItem>();
+        var operations = new Stack<string>();
 
-        foreach (var token in _tokens)
+        foreach (var token in Tokens)
         {
             // If it's a number add it to queue
             bool isNumber = decimal.TryParse(token, style, culture, out var number);
             if (isNumber)
             {
-                _output.Enqueue(new Shunt(number:number));
+                OutputPolishNotation.Enqueue(new CalcItem(number:number));
             }
             else if (token is "+" or "-" or "*" or "/")
             {
-                if ((_operations.Count == 0) || (token is "*" or "/"))
+                if ((operations.Count == 0) || (token is "*" or "/"))
                 {
-                    _operations.Push(token);
+                    operations.Push(token);
                 }
                 else
                 {
                     //While there's an operator on the top of the stack with greater precedence:
-                    while ((_operations.Count > 0) && (_operations.Peek() is "*" or "/" ))
+                    while ((operations.Count > 0) && (operations.Peek() is "*" or "/" ))
                     {
                         //Pop operators from the stack onto the output queue
-                        _output.Enqueue(new Shunt(operatorStr:_operations.Pop()));
+                        OutputPolishNotation.Enqueue(new CalcItem(operatorStr:operations.Pop()));
                     }
-                    _operations.Push(token);
+                    operations.Push(token);
                 }
             }
             else if (token is "(")
             {
-                _operations.Push(token);
+                operations.Push(token);
             }
             else if (token is ")")
             {
-                while (_operations.Peek() != "(")
+                while (operations.Peek() != "(")
                 {
-                    _output.Enqueue(new Shunt(operatorStr:_operations.Pop()));
+                    OutputPolishNotation.Enqueue(new CalcItem(operatorStr:operations.Pop()));
                 }
                 // Pop the left bracket from the stack and discard it
-                _operations.Pop();
+                operations.Pop();
             }
-            
         }
 
-        while (_operations.Count > 0)
+        while (operations.Count > 0)
         {
-            _output.Enqueue(new Shunt(operatorStr:_operations.Pop()));
+            OutputPolishNotation.Enqueue(new CalcItem(operatorStr:operations.Pop()));
         }
     }
-
+    
     private void DivideByTokens()
     {
         var regexp = new Regex(@"(\()|(\))|([\d\.]+)|([\+\/\*-]+)");
 
-        _tokens = regexp.Split(_input).Where(match => !string.IsNullOrWhiteSpace(match)).ToArray();
+        Tokens = regexp.Split(Input).Where(match => !string.IsNullOrWhiteSpace(match)).ToArray();
     }
 
-
-    private void validateInput()
+    private void ValidateInput()
     {
-        validateParenthesis();
-        validateChars();
+        var invalidCharsRegex = new Regex(@"([^\d\(\)\s\.\+\-\/\*]+)");
+        if (string.IsNullOrWhiteSpace(Input) || invalidCharsRegex.IsMatch(Input))
+        {
+            throw new ApplicationException("Given input is invalid!");
+        }
     }
-
-    private void validateParenthesis()
-    {
-        throw new NotImplementedException();
-    }
-
-    private void validateChars()
-    {
-        throw new NotImplementedException();
-    }
+    
 }
