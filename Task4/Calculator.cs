@@ -18,7 +18,7 @@ public class Calculator
                 var allowedValues = new[] { "+", "-", "*", "/" };
                 if (value != null && !allowedValues.Contains(value))
                 {
-                    throw new ArgumentException("Unknown operator!");
+                    throw new ApplicationException("Expression is not valid.");
                 }
 
                 _operator = value;
@@ -76,6 +76,7 @@ public class Calculator
 
         ValidateInput();
         DivideByTokens();
+        ValidateParentheses();
         DoShuntingAlgorithm();
     }
 
@@ -155,7 +156,7 @@ public class Calculator
             }
             else if (token is ")")
             {
-                while (operations.Peek() != "(")
+                while ((operations.Count > 0) && (operations.Peek() != "("))
                 {
                     OutputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
                 }
@@ -186,4 +187,27 @@ public class Calculator
             throw new ApplicationException("Given input is invalid!");
         }
     }
+
+    private void ValidateParentheses()
+    {
+        var bracketStack = new Stack<string>();
+        foreach (var token in Tokens)
+        {
+            switch (token)
+            {
+                case "(":
+                    bracketStack.Push(token);
+                    break;
+                case ")" when bracketStack.Count == 0 || bracketStack.Pop() != "(":
+                    throw new ApplicationException("Wrong order of parentheses!");
+            }
+        }
+        
+        if (bracketStack.Count != 0)
+        {
+            throw new ApplicationException("Wrong order of parentheses!");
+        }
+    }
+    
+    
 }
