@@ -115,8 +115,23 @@ public class Calculator
     private void DivideByTokens()
     {
         var regexp = new Regex(@"(\()|(\))|([\d\.]+)|([\+\/\*-]+)");
+        var splitTokens = regexp.Split(Input).Where(match => !string.IsNullOrWhiteSpace(match)).ToArray();
+        var resTokens = new List<string>();
+        for (int i = 0; i < splitTokens.Length; i++)
+        {
+            var token = splitTokens[i];
+            if (token == "-" && (i == 0 || splitTokens[i - 1] is "+" or "-" or "*" or "/" or "("))
+            {
+                resTokens.Add("-1");
+                resTokens.Add("*");
+            }
+            else
+            {
+                resTokens.Add(token);
+            }
+        }
 
-        _tokens = regexp.Split(Input).Where(match => !string.IsNullOrWhiteSpace(match)).ToArray();
+        _tokens = resTokens.ToArray();
     }
 
     private void ValidateInput()
