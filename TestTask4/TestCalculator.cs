@@ -18,6 +18,7 @@ public class TestCalculator
             "2/0",
             "1+2*(3+2)",
             "2+15/3+4*2",
+            "-5 + 3"
             };
         foreach (var expr in validExpressions)
         {
@@ -57,6 +58,8 @@ public class TestCalculator
             ("((3.5 + 7.2) * 2.1 - 5.3) / (4.6 + 1.8)", 2.6828125M),
             ("((6.6 + 2.9) * 3.4 - 7.1) / 2.5", 10.08M),
             ("5.4 * ((3.1 - 1.7) + 7.8) - 2.6", 47.08M),
+            ("-5 + 2", -3),
+            ("-(4+2)", -6)
         };
         foreach (var (expr, expectedResult) in expressionAndResult)
         {
@@ -65,7 +68,7 @@ public class TestCalculator
             Assert.AreEqual(expectedResult, calculatedResult);
         }
 
-        Assert.ThrowsException<DivideByZeroException>(() => new Calculator("2 / 0").Evaluate());
+        Assert.ThrowsException<ApplicationException>(() => new Calculator("2 / 0").Evaluate());
 
     }
 }

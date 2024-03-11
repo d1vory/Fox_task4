@@ -4,6 +4,17 @@ class Program
 {
     static void Main(string[] args)
     {
+        var expr = "-5 + 2";
+        var rvp = new Calculator(expr);
+        rvp.PrintReversedPolishNotation();
+         
+        var result = rvp.Evaluate();
+        Console.WriteLine($"Result is {result}");
+    }
+    
+    
+    static void Temp(string[] args)
+    {
         Console.WriteLine(
             "This is a simple calculator, which evaluates expressions. \n" + 
             "To start, choose a mode to work: \n" +
@@ -102,7 +113,7 @@ class Program
                 var result = rvp.Evaluate();
                 Console.WriteLine($"Result is {result}");
             }
-            catch (Exception ex) when (ex is ArgumentException or ApplicationException or DivideByZeroException)
+            catch (Exception ex) when (ex is ApplicationException)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.Message);

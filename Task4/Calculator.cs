@@ -5,69 +5,9 @@ namespace Task4;
 
 public class Calculator
 {
-    private class CalcItem
-    {
-        public decimal? Number { get; private set; }
-        private string? _operator;
-
-        public string? Operator
-        {
-            get => _operator;
-            private set
-            {
-                var allowedValues = new[] { "+", "-", "*", "/" };
-                if (value != null && !allowedValues.Contains(value))
-                {
-                    throw new ApplicationException("Expression is not valid.");
-                }
-
-                _operator = value;
-            }
-        }
-
-        public CalcItem(decimal? number = null, string? operatorStr = null)
-        {
-            Number = number;
-            Operator = operatorStr;
-        }
-
-        public bool IsNumber()
-        {
-            return Number != null;
-        }
-
-        public decimal Calculate(decimal a, decimal b)
-        {
-            switch (Operator)
-            {
-                case "+":
-                    return a + b;
-                case "-":
-                    return a - b;
-                case "*":
-                    return a * b;
-                case "/":
-                    return a / b;
-                default:
-                    throw new ApplicationException("This instance is not operator");
-            }
-        }
-
-        public override string ToString()
-        {
-            if (IsNumber())
-            {
-                return Number.ToString() ?? string.Empty;
-            }
-
-            return Operator ?? string.Empty;
-        }
-    }
-
-
-    private string Input { get; set; }
-    private string[] Tokens { get; set; }
-    private Queue<CalcItem> OutputPolishNotation { get; set; }
+    public readonly string Input;
+    private string[] _tokens;
+    private Queue<CalcItem> _outputPolishNotation;
 
 
     public Calculator(string input)
@@ -82,7 +22,7 @@ public class Calculator
 
     public void PrintReversedPolishNotation()
     {
-        foreach (var item in OutputPolishNotation)
+        foreach (var item in _outputPolishNotation)
         {
             Console.Write(item + "  ");
         }
@@ -93,7 +33,7 @@ public class Calculator
     public decimal Evaluate()
     {
         var calculationStack = new Stack<decimal>();
-        foreach (var item in OutputPolishNotation)
+        foreach (var item in _outputPolishNotation)
         {
             if (item.IsNumber())
             {
@@ -121,16 +61,16 @@ public class Calculator
     {
         var culture = new CultureInfo("en-US", false);
         var style = NumberStyles.Number;
-        OutputPolishNotation = new Queue<CalcItem>();
+        _outputPolishNotation = new Queue<CalcItem>();
         var operations = new Stack<string>();
 
-        foreach (var token in Tokens)
+        foreach (var token in _tokens)
         {
             // If it's a number add it to queue
             bool isNumber = decimal.TryParse(token, style, culture, out var number);
             if (isNumber)
             {
-                OutputPolishNotation.Enqueue(new CalcItem(number: number));
+                _outputPolishNotation.Enqueue(new CalcItem(number: number));
             }
             else if (token is "+" or "-" or "*" or "/")
             {
@@ -144,7 +84,7 @@ public class Calculator
                     while ((operations.Count > 0) && (operations.Peek() is "*" or "/"))
                     {
                         //Pop operators from the stack onto the output queue
-                        OutputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
+                        _outputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
                     }
 
                     operations.Push(token);
@@ -158,7 +98,7 @@ public class Calculator
             {
                 while ((operations.Count > 0) && (operations.Peek() != "("))
                 {
-                    OutputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
+                    _outputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
                 }
 
                 // Pop the left bracket from the stack and discard it
@@ -168,7 +108,7 @@ public class Calculator
 
         while (operations.Count > 0)
         {
-            OutputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
+            _outputPolishNotation.Enqueue(new CalcItem(operatorStr: operations.Pop()));
         }
     }
 
@@ -176,7 +116,7 @@ public class Calculator
     {
         var regexp = new Regex(@"(\()|(\))|([\d\.]+)|([\+\/\*-]+)");
 
-        Tokens = regexp.Split(Input).Where(match => !string.IsNullOrWhiteSpace(match)).ToArray();
+        _tokens = regexp.Split(Input).Where(match => !string.IsNullOrWhiteSpace(match)).ToArray();
     }
 
     private void ValidateInput()
@@ -191,7 +131,7 @@ public class Calculator
     private void ValidateParentheses()
     {
         var bracketStack = new Stack<string>();
-        foreach (var token in Tokens)
+        foreach (var token in _tokens)
         {
             switch (token)
             {
